@@ -138,10 +138,10 @@
         <section class="category">
             <div class="category-header">
                 <h2>{{ category.name }}</h2>
-                <span class="count">{{ category.items|length }}</span>
+                <span class="count">{{ category.entries|length }}</span>
             </div>
             <div class="item-list">
-                {% for item in category.items %}
+                {% for item in category.entries %}
                 <article class="item">
                     <div class="item-header">
                         <h3 class="item-title">{{ item.title }}</h3>

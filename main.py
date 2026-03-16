@@ -108,7 +108,7 @@ def format_categories(scored_data, config):
             "id": cat_id,
             "name": cat_config.get('name', cat_id),
             "description": cat_config.get('description', ''),
-            "items": sorted(items, key=lambda x: urgency_order(x.get('urgency', 'low')))
+            "entries": sorted(items, key=lambda x: urgency_order(x.get('urgency', 'low')))
         }
         categories.append(category)
     
