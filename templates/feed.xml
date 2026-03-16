@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+    <title>{{ config.report.title }}</title>
+    <link>https://shixin.github.io/metbiz-daily/</link>
+    <description>{{ config.report.description }}</description>
+    <language>zh-CN</language>
+    <lastBuildDate>{{ build_date }}</lastBuildDate>
+    <atom:link href="https://shixin.github.io/metbiz-daily/feed.xml" rel="self" type="application/rss+xml"/>
+    
+    <item>
+        <title>{{ report.date }} 气象行业情报日报</title>
+        <link>https://shixin.github.io/metbiz-daily/</link>
+        <pubDate>{{ build_date }}</pubDate>
+        <guid isPermaLink="false">metbiz-{{ report.date }}</guid>
+        <description><![CDATA[
+            <h2>今日概览</h2>
+            <p>共 {{ report.summary.total }} 条情报</p>
+            <ul>
+                <li>🔴 紧急: {{ report.summary.urgent }}</li>
+                <li>🟡 高优先级: {{ report.summary.high }}</li>
+                <li>🟢 中优先级: {{ report.summary.medium }}</li>
+            </ul>
+            {% for category in report.categories %}
+            <h3>{{ category.name }} ({{ category.items|length }})</h3>
+            <ul>
+                {% for item in category.items[:5] %}
+                <li>{{ item.title }} {% if item.province %}[{{ item.province }}]{% endif %}</li>
+                {% endfor %}
+            </ul>
+            {% endfor %}
+        ]]></description>
+    </item>
+</channel>
+</rss>

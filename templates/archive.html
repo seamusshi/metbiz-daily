@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史归档 | {{ config.report.title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        header h1 { font-size: 2em; margin-bottom: 10px; }
+        
+        .archive-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .archive-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .archive-item:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+        .archive-date { font-size: 1.2em; font-weight: 600; color: #667eea; margin-bottom: 8px; }
+        .archive-count { color: #666; font-size: 0.9em; }
+        
+        .nav { display: flex; gap: 20px; justify-content: center; margin-bottom: 20px; }
+        .nav a { color: #667eea; text-decoration: none; padding: 8px 16px; border-radius: 6px; }
+        .nav a:hover { background: rgba(102,126,234,0.1); }
+        
+        footer { text-align: center; padding: 30px; color: #999; font-size: 0.9em; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 历史归档</h1>
+            <p>过去30天的气象行业情报日报</p>
+            <nav class="nav" style="margin-top: 20px;">
+                <a href="index.html">今日日报</a>
+                <a href="archive.html">历史归档</a>
+                <a href="about.html">关于</a>
+            </nav>
+        </header>
+        
+        <div class="archive-list">
+            {% for item in archives %}
+            <a href="{{ item.date }}.html" class="archive-item">
+                <div class="archive-date">{{ item.date }}</div>
+                <div class="archive-count">{{ item.total }} 条情报</div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        <footer>
+            <p>MetBiz Daily Report | 自动生成</p>
+        </footer>
+    </div>
+</body>
+</html>

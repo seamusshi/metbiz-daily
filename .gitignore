@@ -1,0 +1,21 @@
+# GitHub Actions 会生成并部署，无需手动提交 output/
+output/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+.venv
+venv/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
