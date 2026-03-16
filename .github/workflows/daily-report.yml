@@ -26,7 +26,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip'
+          # 暂时禁用缓存以确保使用最新代码
+          # cache: 'pip'
+
+      - name: Verify code version
+        run: |
+          echo "=== 搜索模块代码版本 ==="
+          grep "解码 DuckDuckGo" src/collectors/search_collector.py || echo "WARNING: 旧版本代码"
+          echo "========================="
 
       - name: Install dependencies
         run: |

@@ -85,6 +85,10 @@ class SearchCollector:
                         title = re.sub(r'<[^>]+>', '', title).strip()
                         # 解码 DuckDuckGo 重定向 URL
                         real_url = self._decode_duckduckgo_url(url)
+                        # 调试输出
+                        if 'duckduckgo.com' in url:
+                            print(f"     [DEBUG] 原始URL: {url[:60]}...")
+                            print(f"     [DEBUG] 解码URL: {real_url[:60]}...")
                         if title and real_url:
                             results.append({
                                 'title': title[:200],
