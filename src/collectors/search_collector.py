@@ -16,6 +16,7 @@ class SearchCollector:
         self.all_keywords = self._extract_all_keywords()
         # 只保留最近1个月的信息
         self.cutoff_date = datetime.now() - timedelta(days=30)
+        self.current_year = datetime.now().year
     
     def _extract_all_keywords(self) -> List[str]:
         """从配置中提取所有搜索关键词"""
@@ -69,7 +70,10 @@ class SearchCollector:
             import urllib.request
             import urllib.parse
             
-            search_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(keyword)}"
+            # 在搜索关键词中添加年份限制，优先搜索最近2年的内容
+            search_query = f"{keyword} {self.current_year} OR {self.current_year - 1}"
+            search_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(search_query)}"
+            
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
             req = urllib.request.Request(search_url, headers=headers)
             
@@ -95,6 +99,14 @@ class SearchCollector:
                             snippet = re.sub(r'<[^>]+>', '', snippets[idx]).strip()
                         if not snippet:
                             snippet = title
+                        
+                        # 从标题中提取年份进行预过滤
+                        year_match = re.search(r'(202[0-5])', title)
+                        if year_match:
+                            year = int(year_match.group(1))
+                            if year < self.current_year - 1:  # 如果是2024年及更早
+                                print(f"     [预过滤] 旧年份 ({year}): {title[:50]}...")
+                                continue
                         
                         # 提取日期信息
                         date_info = self._extract_date(title, snippet)
@@ -123,13 +135,12 @@ class SearchCollector:
     def _extract_date(self, title: str, snippet: str) -> Dict:
         """从标题和摘要中提取日期信息"""
         text = title + " " + snippet
-        result = {'date_str': None, 'date_obj': None, 'deadline': None, 'is_expired': False}
+        result = {'date_str': None, 'deadline': None, 'is_expired': False}
         
         # 匹配各种日期格式
-        # 2024-03-16, 2024年3月16日, 2024.03.16, 2024/03/16
         date_patterns = [
-            r'(\d{4})[-年.](\d{1,2})[-月.](\d{1,2})[日]?',  # 2024-03-16, 2024年3月16日
-            r'(\d{4})/(\d{1,2})/(\d{1,2})',  # 2024/03/16
+            r'(\d{4})[-年.](\d{1,2})[-月.](\d{1,2})[日]?',
+            r'(\d{4})/(\d{1,2})/(\d{1,2})',
         ]
         
         found_dates = []
@@ -149,12 +160,10 @@ class SearchCollector:
         
         # 找最近的日期作为发布日期
         if found_dates:
-            # 按日期排序，取最近的
             found_dates.sort(key=lambda x: x['date_obj'], reverse=True)
             result['date_str'] = found_dates[0]['date_str']
-            result['date_obj'] = found_dates[0]['date_obj']
         
-        # 尝试提取截止日期（招标信息常见格式）
+        # 尝试提取截止日期
         deadline_patterns = [
             r'截止[时间]?[:\s]*(\d{4}[-年.]\d{1,2}[-月.]\d{1,2})',
             r'投标截止[:\s]*(\d{4}[-年.]\d{1,2}[-月.]\d{1,2})',
@@ -202,7 +211,7 @@ class SearchCollector:
                     # 日期解析失败，保留
                     filtered.append(item)
             else:
-                # 没有日期信息，保留（可能是没有提取到日期）
+                # 没有日期信息，但有年份过滤过的，保留
                 filtered.append(item)
         
         return filtered
