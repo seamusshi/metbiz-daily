@@ -109,7 +109,6 @@ class SearchCollector:
                                 'source': 'duckduckgo',
                                 'keyword': keyword,
                                 'date_str': date_info.get('date_str'),
-                                'date_obj': date_info.get('date_obj'),
                                 'deadline': date_info.get('deadline'),
                                 'is_expired': date_info.get('is_expired', False)
                             })
@@ -191,12 +190,17 @@ class SearchCollector:
                 continue
             
             # 如果有日期信息，检查是否在1个月内
-            date_obj = item.get('date_obj')
-            if date_obj:
-                if date_obj >= self.cutoff_date:
+            date_str = item.get('date_str')
+            if date_str:
+                try:
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                    if date_obj >= self.cutoff_date:
+                        filtered.append(item)
+                    else:
+                        print(f"     [过滤] 过期信息 ({date_str}): {item['title'][:40]}...")
+                except:
+                    # 日期解析失败，保留
                     filtered.append(item)
-                else:
-                    print(f"     [过滤] 过期信息 ({item.get('date_str')}): {item['title'][:40]}...")
             else:
                 # 没有日期信息，保留（可能是没有提取到日期）
                 filtered.append(item)
