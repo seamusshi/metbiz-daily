@@ -5,8 +5,8 @@ Search Collector - 搜索数据收集器
 """
 
 import json
+import time
 from typing import List, Dict, Any
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class SearchCollector:
     def __init__(self, config: Dict):
@@ -38,11 +38,12 @@ class SearchCollector:
         
         print(f"   准备搜索 {len(self.all_keywords)} 个关键词...")
         
-        # 串行执行（因为 kimi_search 是外部工具调用）
+        # 串行执行（避免请求过快）
         for i, keyword in enumerate(self.all_keywords, 1):
             print(f"   [{i}/{len(self.all_keywords)}] 搜索: {keyword}")
             results = self._search_single(keyword)
             all_results.extend(results)
+            time.sleep(1)  # 避免请求过快
         
         # 去重
         unique_results = self._deduplicate(all_results)
@@ -51,18 +52,48 @@ class SearchCollector:
         return unique_results
     
     def _search_single(self, keyword: str) -> List[Dict[str, Any]]:
-        """执行单个搜索 - 调用 kimi_search 工具"""
+        """执行单个搜索 - 使用 web_search 工具"""
         results = []
         
         try:
-            # 这里使用工具调用，实际运行时由 OpenClaw 环境提供
-            # 为了可测试性，我们先模拟返回结构
-            # 真实运行时，这个函数会被实际的 kimi_search 调用替换
+            # 使用 brave web search (Python 实现)
+            import urllib.request
+            import urllib.parse
             
-            # 模拟数据用于结构验证
-            # 实际部署时，这里会调用 tools.kimi_search
-            pass
+            # Brave Search API (需要 API key)
+            # 这里使用 duckduckgo 搜索作为免费替代
+            search_url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(keyword)}"
             
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            
+            req = urllib.request.Request(search_url, headers=headers)
+            
+            try:
+                with urllib.request.urlopen(req, timeout=10) as response:
+                    html = response.read().decode('utf-8')
+                    
+                    # 简单解析搜索结果
+                    import re
+                    # 提取结果标题和链接
+                    result_pattern = r'<a[^>]*class="[^"]*result__a[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)</a>'
+                    matches = re.findall(result_pattern, html, re.DOTALL)
+                    
+                    for url, title in matches[:5]:  # 取前5条
+                        # 清理标题
+                        title = re.sub(r'<[^>]+>', '', title).strip()
+                        if title and url:
+                            results.append({
+                                'title': title[:200],
+                                'url': url,
+                                'snippet': title,
+                                'source': 'duckduckgo',
+                                'keyword': keyword
+                            })
+            except Exception as e:
+                print(f"   搜索请求失败: {e}")
+                
         except Exception as e:
             print(f"   搜索失败 [{keyword}]: {e}")
         
