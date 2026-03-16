@@ -80,11 +80,23 @@ class SearchCollector:
                     result_pattern = r'<a[^>]*class="[^"]*result__a[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)</a>'
                     matches = re.findall(result_pattern, html, re.DOTALL)
                     
-                    for url, title in matches[:5]:  # 取前5条
+                    # 提取摘要 - DuckDuckGo 结果摘要在 result__snippet 类中
+                    snippet_pattern = r'<a[^>]*class="[^"]*result__snippet[^"]*"[^>]*>(.*?)</a>'
+                    snippets = re.findall(snippet_pattern, html, re.DOTALL)
+                    
+                    for idx, (url, title) in enumerate(matches[:5]):  # 取前5条
                         # 清理标题
                         title = re.sub(r'<[^>]+>', '', title).strip()
                         # 解码 DuckDuckGo 重定向 URL
                         real_url = self._decode_duckduckgo_url(url)
+                        # 获取摘要（如果有）
+                        snippet = ''
+                        if idx < len(snippets):
+                            snippet = re.sub(r'<[^>]+>', '', snippets[idx]).strip()
+                        # 如果没有摘要，使用标题作为摘要
+                        if not snippet:
+                            snippet = title
+                        
                         # 调试输出
                         if 'duckduckgo.com' in url:
                             print(f"     [DEBUG] 原始URL: {url[:60]}...")
@@ -93,7 +105,9 @@ class SearchCollector:
                             results.append({
                                 'title': title[:200],
                                 'url': real_url,
-                                'snippet': title,
+                                'snippet': snippet[:300] if snippet else title,
+                                'summary': snippet[:300] if snippet else title,  # 用于模板显示
+                                'content': snippet[:300] if snippet else title,   # 用于模板显示
                                 'source': 'duckduckgo',
                                 'keyword': keyword
                             })
