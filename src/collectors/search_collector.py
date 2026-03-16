@@ -83,10 +83,12 @@ class SearchCollector:
                     for url, title in matches[:5]:  # 取前5条
                         # 清理标题
                         title = re.sub(r'<[^>]+>', '', title).strip()
-                        if title and url:
+                        # 解码 DuckDuckGo 重定向 URL
+                        real_url = self._decode_duckduckgo_url(url)
+                        if title and real_url:
                             results.append({
                                 'title': title[:200],
-                                'url': url,
+                                'url': real_url,
                                 'snippet': title,
                                 'source': 'duckduckgo',
                                 'keyword': keyword
@@ -98,6 +100,35 @@ class SearchCollector:
             print(f"   搜索失败 [{keyword}]: {e}")
         
         return results
+    
+    def _decode_duckduckgo_url(self, url: str) -> str:
+        """解码 DuckDuckGo 重定向 URL，提取真实地址"""
+        import urllib.parse
+        
+        # 如果是相对路径，添加协议
+        if url.startswith('//'):
+            url = 'https:' + url
+        
+        # 检查是否是 DuckDuckGo 重定向链接
+        if 'duckduckgo.com/l/' in url or 'duckduckgo.com/l?' in url:
+            try:
+                # 解析 URL 参数
+                parsed = urllib.parse.urlparse(url)
+                params = urllib.parse.parse_qs(parsed.query)
+                
+                # 提取 uddg 参数（真实 URL）
+                if 'uddg' in params:
+                    real_url = urllib.parse.unquote(params['uddg'][0])
+                    return real_url
+                # 尝试 rurl 参数
+                elif 'rurl' in params:
+                    real_url = urllib.parse.unquote(params['rurl'][0])
+                    return real_url
+            except Exception:
+                pass
+        
+        # 如果不是重定向链接或解析失败，直接返回原 URL
+        return url
     
     def _deduplicate(self, results: List[Dict]) -> List[Dict]:
         """按URL去重"""
