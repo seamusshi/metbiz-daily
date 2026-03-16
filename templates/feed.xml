@@ -22,9 +22,9 @@
                 <li>🟢 中优先级: {{ report.summary.medium }}</li>
             </ul>
             {% for category in report.categories %}
-            <h3>{{ category.name }} ({{ category.items|length }})</h3>
+            <h3>{{ category.name }} ({{ category.entries|length }})</h3>
             <ul>
-                {% for item in category.items[:5] %}
+                {% for item in category.entries[:5] %}
                 <li>{{ item.title }} {% if item.province %}[{{ item.province }}]{% endif %}</li>
                 {% endfor %}
             </ul>
